@@ -1,7 +1,4 @@
-import { ReactNode } from 'react';
-import cx from 'classnames';
-
-import '../styles/question.scss';
+import { Avatar, Box, Button, Heading, Text, Flex, Image } from '@chakra-ui/react';
 
 type QuestionProps = {
   content: string;
@@ -9,34 +6,27 @@ type QuestionProps = {
     name: string;
     avatar: string;
   };
-  children?: ReactNode,
-  isAnswered?: boolean;
-  isHighlighted?: boolean;
 }
 
 export function Question({
   content,
   author,
-  isAnswered = false,
-  isHighlighted = false,
-  children,
 }: QuestionProps) {
   return (
-    <div
-      className={cx(
-        'question',
-        { answered: isAnswered },
-        { highlighted: isHighlighted && !isAnswered },
-      )}
+    <Box
+      mb={4}
+      bg="gray.800"
+      p={4}
+      borderRadius={8}
     >
-      <p>{content}</p>
-      <footer>
-        <div className="user-info">
-          <img src={author.avatar} alt={author.name} />
-          <span>{author.name}</span>
-        </div>
-        <div>{children}</div>
-      </footer>
-    </div>
+      <Heading>{content}</Heading>
+      <Text>{content}</Text>
+      <Flex mt={4} justify="space-between" align="center">
+        <Flex justify="space-between" align="center">
+          <Avatar src={author.avatar} size="sm" name={author.name} alt={author.name} />
+          <Text ml={2}>{author.name}</Text>
+        </Flex>
+      </Flex>
+    </Box>
   );
 }

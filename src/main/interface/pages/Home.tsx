@@ -11,10 +11,21 @@ import { database } from 'data/services/firebase';
 import { useAuth } from 'main/hooks';
 import { Box, Flex, Image, Text, FormControl, Button, Input, useColorMode, useBreakpointValue } from '@chakra-ui/react';
 
+type User = {
+  id: string;
+  name: string;
+}
+
+type FirebaseUser = Record<string, User>
+interface UsersId {
+  id: string;
+}
+
 export function Home() {
   const history = useHistory();
   const { user, signInWithGoogle } = useAuth();
   const [roomCode, setRoomCode] = useState('');
+  const [usersInRoom, setUsersInRoom] = useState<string[]>([]);
   const { colorMode, toggleColorMode } = useColorMode();
 
   async function handleCreateRoom() {
@@ -33,7 +44,7 @@ export function Home() {
     }
 
     const roomRef = await database.ref(`rooms/${roomCode}`).get();
-
+    var asdas = roomRef.ref;
     if (!roomRef.exists()) {
       alert('A sala não existe');
       return;
@@ -44,9 +55,30 @@ export function Home() {
       return;
     }
 
+
+    roomRef.ref.on('value', room => {
+      const databaseRoom = room.val();
+      const firebaseUsers: FirebaseUser = databaseRoom.users ?? {};
+
+      const parsedUsers = Object.entries(firebaseUsers).map(([key, value]) => {
+        return value.id;
+      });
+
+      setUsersInRoom(parsedUsers);
+    })
+
+    var exist = usersInRoom.some(x => x === user?.id);
+
+    if (!exist) {
+      await database.ref(`rooms/${roomCode}/users/`).push({
+        id: user?.id,
+        name: user?.name,
+      });
+    }
+
     history.push(`/rooms/${roomCode}`);
   }
-  
+
   return (
     <Flex >
       <Flex justify="center" display={useBreakpointValue({ base: "none", md: "flex" })} align="center" direction="column" w="50%" h="100vh" as="aside" background={colorMode == "dark" ? "gray.800" : "brand.500"}>
@@ -84,7 +116,7 @@ export function Home() {
               color="white"
               type="submit" w="300px"
               _hover={{
-                bgGradient: colorMode == "dark" ? 'linear(to-l, green.400, brand.500)' :  'linear(to-l, brand.600, brand.600)' 
+                bgGradient: colorMode == "dark" ? 'linear(to-l, green.400, brand.500)' : 'linear(to-l, brand.600, brand.600)'
               }}
             >
               <Image mr={2} src={logInImg} alt="Ícone de entrar" />
