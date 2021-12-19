@@ -1,1 +1,6 @@
 export * from './task'
+export * from './firebaseTasks'
+export * from './user'
+export * from './firebaseUsers'
+export * from './vote'
+export * from './firebaseVotes'

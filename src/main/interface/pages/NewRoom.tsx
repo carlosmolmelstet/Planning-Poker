@@ -1,6 +1,6 @@
 import { Link, useHistory } from 'react-router-dom';
-import { FormEvent, useState } from 'react';
-
+import { FormEvent, useEffect, useState } from 'react';
+import { auth } from "data/services";
 import illustrationImg from '../assets/images/illustration.svg';
 import logoImg from '../assets/images/logo.svg';
 import logoImgLight from '../assets/images/logo-light.svg';
@@ -8,15 +8,32 @@ import { database } from 'data/services/firebase';
 import { useAuth } from 'main/hooks/useAuth';
 import { Flex, Image, Text, Box, useColorMode, useBreakpointValue, Button, Input, FormControl, Link as ChakraLink } from '@chakra-ui/react';
 
+
 export function NewRoom() {
   const { colorMode } = useColorMode();
-  const { user } = useAuth();
   const history = useHistory();
   const [newRoom, setNewRoom] = useState('');
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+
+      if (user) {
+        const { email } = user;
+
+        if (!email) {
+          throw new Error('Missing information from Google Account.');
+        }
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    }
+  }, []);
 
   async function handleCreateRoom(event: FormEvent) {
     event.preventDefault();
-
     if (newRoom.trim() === '') {
       return;
     }
@@ -26,6 +43,13 @@ export function NewRoom() {
     const firebaseRoom = await roomRef.push({
       title: newRoom,
       authorId: user?.id,
+      usersInRoom: [
+        {
+          id: user?.id,
+          name: user?.name,
+          avater: user?.avatar
+        }
+      ],
     });
 
     history.push(`/admin/rooms/${firebaseRoom.key}`);

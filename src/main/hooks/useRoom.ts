@@ -1,24 +1,13 @@
 import { useEffect, useState } from "react";
 import { database } from "data/services/firebase";
 import { useAuth } from "./useAuth";
-import { Task } from "domain/entities";
-
-type FirebaseTasks = Record<string, {
-  author: {
-    name: string;
-    avatar: string;
-  };
-  content: string;
-  isHighlighted: boolean;
-  isAnswered: boolean;
-  vote: Record<string, {
-    authorId: string;
-  }>;
-}>
+import { FirebaseTasks, FirebaseUsers, Task, User, Vote } from "domain/entities";
 
 export function useRoom(roomId: string) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [lastTask, setLastTask] = useState<Task>();
 
   const [title, setTitle] = useState('');
   useEffect(() => {
@@ -32,17 +21,28 @@ export function useRoom(roomId: string) {
         return {
           id: key,
           content: value.content,
+          title: value.title,
           author: value.author,
-          isHighlighted: value.isHighlighted,
-          isAnswered: value.isAnswered,
-          voteCount: Object.values(value.vote ?? {}).length,
-          voteId: Object.entries(value.vote ?? {}).find(([key, vote]) => vote.authorId === user?.id)?.[0],
+          hiddenVotes: value.hiddenVotes,
+          votes: Object.entries(value.votes || []).map(([key, value]) => { return {id: key, user: value.user, effort: value.effort}}) 
         }
       });
 
-      setTasks(parsedTasks);
-      setTitle(databaseRoom.title);
+      
+      const firebaseUsers: FirebaseUsers = databaseRoom.usersInRoom ?? {};
 
+      const parsedUsers = Object.entries(firebaseUsers).map(([key, value]) => {
+        return {
+          id: value.id,
+          name: value.name,
+          avatar: value.avatar
+        }
+      });
+
+      setUsers(parsedUsers);
+      setTasks(parsedTasks);
+      setLastTask(parsedTasks.pop());
+      setTitle(databaseRoom.title);
     })
 
     return () => {
@@ -50,9 +50,5 @@ export function useRoom(roomId: string) {
     }
   }, [roomId, user?.id]);
 
-
-
-
-
-  return {title, tasks};
+  return {title, tasks, lastTask, users};
 }

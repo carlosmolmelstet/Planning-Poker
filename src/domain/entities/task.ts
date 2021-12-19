@@ -1,3 +1,5 @@
+import { Vote } from ".";
+
 export type Task = {
     id: string;
     author: {
@@ -5,9 +7,8 @@ export type Task = {
       avatar: string;
     };
     content: string;
-    isHighlighted: boolean;
-    isAnswered: boolean;
-    voteCount: number;
-    voteId: string | undefined;
+    title: string;
+    hiddenVotes: boolean;
+    votes: Vote[]
   }
   

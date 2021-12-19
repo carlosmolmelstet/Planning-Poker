@@ -1,5 +1,4 @@
 export * from './Button'
 export * from './RoomCode'
 export * from './Question'
-export * from './PokerTable'
-export * from './LastTask'
+export * from './usersInRoom'

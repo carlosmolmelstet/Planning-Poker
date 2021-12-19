@@ -1,15 +1,15 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom'
 
 import logoImg from '../assets/images/logo.svg';
 import emptyImg from '../assets/images/empty-questions.svg';
 
-import { RoomCode, Question, PokerTable, LastTask } from '../components/';
+import { RoomCode, Question } from '../components/';
 import { useAuth } from 'main/hooks/useAuth';
 import { useRoom } from 'main/hooks/useRoom';
 import deleteImg from '../assets/images/delete.svg';
 import { database } from 'data/services/firebase';
-import { Flex, Container, Image, Button, Box, Heading, Text, Textarea, FormControl, Input } from '@chakra-ui/react';
+import { Flex, Container, Image, Button, Box, Heading, Text, Textarea, FormControl, Input, HStack } from '@chakra-ui/react';
 
 type RoomParams = {
   id: string;
@@ -22,7 +22,7 @@ export function RoomOwner() {
   const [newTaskContent, setNewTaskContent] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const roomId = params.id;
-  const { title, tasks } = useRoom(roomId);
+  const { title, tasks, lastTask } = useRoom(roomId);
 
   async function handleSendQuestion(event: FormEvent) {
     event.preventDefault();
@@ -37,12 +37,11 @@ export function RoomOwner() {
     const task = {
       content: newTaskContent,
       title: newTaskTitle,
+      hiddenVotes: true,
       author: {
         name: user.name,
         avatar: user.avatar
       },
-      isHighlighted: false,
-      isAnswered: false,
     };
 
     await database.ref(`rooms/${roomId}/tasks`).push(task);
@@ -77,10 +76,13 @@ export function RoomOwner() {
     history.push('/');
   }
 
-
-
-
-
+  async function toTurnVotes() {
+    if(lastTask) {
+      database.ref(`rooms/${roomId}/tasks/${lastTask.id}`).update({
+        hiddenVotes: !lastTask.hiddenVotes,
+      });
+    }
+  }
   return (
     <Box>
       <Flex p={4} borderBottom="1px solid gray">
@@ -99,6 +101,8 @@ export function RoomOwner() {
           {tasks.length > 0 && <Text fontSize={14} color="gray.400" >{tasks.length} Tasks(s)</Text>}
         </Flex>
 
+        <Button onClick={toTurnVotes}>Show</Button>
+
         <FormControl mb={16} as="form" onSubmit={handleSendQuestion}>
           <Input
             placeholder="Titulo da Task"
@@ -113,21 +117,29 @@ export function RoomOwner() {
           />
           <Button type="submit" disabled={!user}>Adicionar Task</Button>
         </FormControl>
-        {tasks.length > 0 ? <LastTask roomId={roomId} /> : <></>}
+
+        {lastTask && <Question
+          key={lastTask.id}
+          content={lastTask.content}
+          title={lastTask.title}
+          author={lastTask.author}
+        />}
+
         <Text mb={4}>Historico</Text>
         {tasks.length > 0
           ? (
-            <div className="question-list">
+            <Flex direction="column-reverse" >
               {tasks.map(question => {
                 return (
                   <Question
                     key={question.id}
                     content={question.content}
+                    title={question.title}
                     author={question.author}
                   />
                 );
               })}
-            </div>
+            </Flex>
           )
           : (
             <div className="empty-tasks">

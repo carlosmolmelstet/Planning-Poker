@@ -1,15 +1,14 @@
 import { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-
 import illustrationImg from '../assets/images/illustration.svg';
 import logoImg from '../assets/images/logo.svg';
 import logoImgLight from '../assets/images/logo-light.svg';
 import googleIconImg from '../assets/images/google-icon.svg'
 import logInImg from '../assets/images/log-in.svg';
-
 import { database } from 'data/services/firebase';
 import { useAuth } from 'main/hooks';
 import { Box, Flex, Image, Text, FormControl, Button, Input, useColorMode, useBreakpointValue } from '@chakra-ui/react';
+import { FirebaseUsers } from 'domain/entities';
 
 type User = {
   id: string;
@@ -39,12 +38,16 @@ export function Home() {
   async function handleJoinRoom(event: FormEvent) {
     event.preventDefault();
 
+    if (!user) {
+      await signInWithGoogle();
+    };
+
     if (roomCode.trim() === '') {
       return;
     }
 
     const roomRef = await database.ref(`rooms/${roomCode}`).get();
-    var asdas = roomRef.ref;
+
     if (!roomRef.exists()) {
       alert('A sala não existe');
       return;
@@ -55,24 +58,27 @@ export function Home() {
       return;
     }
 
-
     roomRef.ref.on('value', room => {
       const databaseRoom = room.val();
-      const firebaseUsers: FirebaseUser = databaseRoom.users ?? {};
+      const firebaseTasks: FirebaseUser = databaseRoom.usersInRoom ?? {};
 
-      const parsedUsers = Object.entries(firebaseUsers).map(([key, value]) => {
-        return value.id;
+      const parsedTasks = Object.entries(firebaseTasks).map(([key, value]) => {
+        return {
+          id: value.id,
+          name: value.name,
+        }
       });
 
-      setUsersInRoom(parsedUsers);
+      var exist = parsedTasks.some(esxitUser => esxitUser.id == user?.id);
+      if (!exist && user) {
+        var users = [...parsedTasks, user]
+        addUser(roomCode, users);
+      }
     })
 
-    var exist = usersInRoom.some(x => x === user?.id);
-
-    if (!exist) {
-      await database.ref(`rooms/${roomCode}/users/`).push({
-        id: user?.id,
-        name: user?.name,
+    function addUser(roomCode: string, users: User[]) {
+      database.ref(`rooms/${roomCode}`).update({
+        usersInRoom: users,
       });
     }
 

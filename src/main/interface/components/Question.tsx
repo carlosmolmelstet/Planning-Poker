@@ -2,6 +2,7 @@ import { Avatar, Box, Button, Heading, Text, Flex, Image } from '@chakra-ui/reac
 
 type QuestionProps = {
   content: string;
+  title: string;
   author: {
     name: string;
     avatar: string;
@@ -10,6 +11,7 @@ type QuestionProps = {
 
 export function Question({
   content,
+  title,
   author,
 }: QuestionProps) {
   return (
@@ -19,7 +21,7 @@ export function Question({
       p={4}
       borderRadius={8}
     >
-      <Heading>{content}</Heading>
+      <Heading>{title}</Heading>
       <Text>{content}</Text>
       <Flex mt={4} justify="space-between" align="center">
         <Flex justify="space-between" align="center">
