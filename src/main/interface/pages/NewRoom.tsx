@@ -8,7 +8,6 @@ import { database } from 'data/services/firebase';
 import { useAuth } from 'main/hooks/useAuth';
 import { Flex, Image, Text, Box, useColorMode, useBreakpointValue, Button, Input, FormControl, Link as ChakraLink } from '@chakra-ui/react';
 
-
 export function NewRoom() {
   const { colorMode } = useColorMode();
   const history = useHistory();

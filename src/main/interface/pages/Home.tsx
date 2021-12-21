@@ -8,24 +8,13 @@ import logInImg from '../assets/images/log-in.svg';
 import { database } from 'data/services/firebase';
 import { useAuth } from 'main/hooks';
 import { Box, Flex, Image, Text, FormControl, Button, Input, useColorMode, useBreakpointValue } from '@chakra-ui/react';
-import { FirebaseUsers } from 'domain/entities';
-
-type User = {
-  id: string;
-  name: string;
-}
-
-type FirebaseUser = Record<string, User>
-interface UsersId {
-  id: string;
-}
+import { FirebaseUsers, User } from 'domain/entities';
 
 export function Home() {
   const history = useHistory();
   const { user, signInWithGoogle } = useAuth();
   const [roomCode, setRoomCode] = useState('');
-  const [usersInRoom, setUsersInRoom] = useState<string[]>([]);
-  const { colorMode, toggleColorMode } = useColorMode();
+  const { colorMode } = useColorMode();
 
   async function handleCreateRoom() {
     if (!user) {
@@ -60,12 +49,13 @@ export function Home() {
 
     roomRef.ref.on('value', room => {
       const databaseRoom = room.val();
-      const firebaseTasks: FirebaseUser = databaseRoom.usersInRoom ?? {};
+      const firebaseTasks: FirebaseUsers = databaseRoom.usersInRoom ?? {};
 
       const parsedTasks = Object.entries(firebaseTasks).map(([key, value]) => {
         return {
           id: value.id,
           name: value.name,
+          avatar: value.avatar
         }
       });
 

@@ -1,15 +1,13 @@
-import { FormEvent, useContext, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom'
 
 import logoImg from '../assets/images/logo.svg';
-import emptyImg from '../assets/images/empty-questions.svg';
 
-import { RoomCode, Question } from '../components/';
+import { RoomCode, Question, TasksEmpty } from '../components/';
 import { useAuth } from 'main/hooks/useAuth';
 import { useRoom } from 'main/hooks/useRoom';
-import deleteImg from '../assets/images/delete.svg';
 import { database } from 'data/services/firebase';
-import { Flex, Container, Image, Button, Box, Heading, Text, Textarea, FormControl, Input, HStack } from '@chakra-ui/react';
+import { Flex, Container, Image, Button, Box, Heading, Text, Textarea, FormControl, Input } from '@chakra-ui/react';
 
 type RoomParams = {
   id: string;
@@ -50,22 +48,6 @@ export function RoomOwner() {
     setNewTaskTitle('');
   }
 
-  async function handleLikeQuestion(questionId: string, likeId: string | undefined) {
-    if (likeId) {
-      await database.ref(`rooms/${roomId}/tasks/${questionId}/likes/${likeId}`).remove();
-    } else {
-      await database.ref(`rooms/${roomId}/tasks/${questionId}/likes`).push({
-        authorId: user?.id,
-      });
-    }
-  }
-
-  async function handleDeleteQuestion(questionId: string) {
-    if (window.confirm('Tem certeza que você deseja excluir esta pergunta?')) {
-      await database.ref(`rooms/${roomId}/tasks/${questionId}`).remove();
-    }
-  }
-
   async function handleEndRoom() {
     if (window.confirm('Tem certeza que você deseja encerrar esta sala?')) {
       await database.ref(`rooms/${roomId}`).update({
@@ -77,7 +59,7 @@ export function RoomOwner() {
   }
 
   async function toTurnVotes() {
-    if(lastTask) {
+    if (lastTask) {
       database.ref(`rooms/${roomId}/tasks/${lastTask.id}`).update({
         hiddenVotes: !lastTask.hiddenVotes,
       });
@@ -94,15 +76,11 @@ export function RoomOwner() {
           </Flex>
         </Container >
       </Flex>
-
       <Container maxW='container.xl' display="flex" flexDir="column"  >
         <Flex my={4} flexDirection="column">
           <Heading fontSize={24} fontWeight="normal" >{title}</Heading>
-          {tasks.length > 0 && <Text fontSize={14} color="gray.400" >{tasks.length} Tasks(s)</Text>}
+          {tasks.length > 0 && <Text fontSize={14} color="gray.400" >{tasks.length + 1} Tasks(s)</Text>}
         </Flex>
-
-        <Button onClick={toTurnVotes}>Show</Button>
-
         <FormControl mb={16} as="form" onSubmit={handleSendQuestion}>
           <Input
             placeholder="Titulo da Task"
@@ -111,7 +89,7 @@ export function RoomOwner() {
           />
           <Textarea
             my={4}
-            placeholder="O que você quer perguntar?"
+            placeholder="Descreva a task"
             onChange={event => setNewTaskContent(event.target.value)}
             value={newTaskContent}
           />
@@ -123,32 +101,34 @@ export function RoomOwner() {
           content={lastTask.content}
           title={lastTask.title}
           author={lastTask.author}
+          isLastQuestion={true}
+          toTurnVotes={toTurnVotes}
+          hiddeVotes={lastTask.hiddenVotes}
         />}
 
-        <Text mb={4}>Historico</Text>
         {tasks.length > 0
           ? (
-            <Flex direction="column-reverse" >
-              {tasks.map(question => {
-                return (
-                  <Question
-                    key={question.id}
-                    content={question.content}
-                    title={question.title}
-                    author={question.author}
-                  />
-                );
-              })}
-            </Flex>
+            <>
+              <Text mb={4} mt={10}>Historico</Text>
+              <Flex direction="column-reverse" >
+                {tasks.map(question => {
+                  return (
+                    <Question
+                      key={question.id}
+                      content={question.content}
+                      title={question.title}
+                      author={question.author}
+                    />
+                  );
+                })}
+              </Flex>
+            </>
           )
           : (
-            <div className="empty-tasks">
-              <img src={emptyImg} alt="Ilustração simbolizando perguntas" />
-              <h2>Nenhuma pergunta por aqui...</h2>
-              <p>Faça o seu login e seja a primeira pessoa a fazer uma pergunta!</p>
-            </div>
+            <TasksEmpty />
           )
         }
+
       </Container>
     </Box>
   );

@@ -16,7 +16,7 @@ export function RoomCode(props: RoomCodeProps) {
     <Button
       background="gray.700"
       borderRadius={4}
-      _hover={{background: "brand.700"}}
+      _hover={{background: "green.500"}}
       p={0}
       h={8}
       onClick={copyRoomCodeToClipboard}
@@ -24,7 +24,7 @@ export function RoomCode(props: RoomCodeProps) {
       <Flex borderRadius={4} justify="center" align="center" w={8} h={8} >
         <Image src={copyImg} alt="Copiar código da sala" />
       </Flex>
-      <Flex h={8} background="gray.800" align="center" >
+      <Flex h={8} background="gray.900" align="center" >
         <Text fontWeight="medium" fontSize={14} px={4}>Sala #{props.code}</Text>
       </Flex>
     </Button>
