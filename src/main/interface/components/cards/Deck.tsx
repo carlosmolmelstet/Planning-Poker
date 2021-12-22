@@ -89,7 +89,7 @@ export function Deck() {
 
     return (
         <HStack h="170px" w="100%" justify="center" spacing={4} position="absolute" bottom="0">
-            {effortList.map(item => <Card effort={item} vote={vote} setVote={handleVote}/>)}
+            {effortList.map(item => <Card key={item} effort={item} vote={vote} setVote={handleVote}/>)}
         </HStack>
     );
 }

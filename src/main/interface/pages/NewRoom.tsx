@@ -46,7 +46,7 @@ export function NewRoom() {
         {
           id: user?.id,
           name: user?.name,
-          avater: user?.avatar
+          avatar: user?.avatar
         }
       ],
     });
